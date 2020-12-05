@@ -14,3 +14,9 @@ docker run -it --rm --name grad-program grad-program --current-semester 'Fall 20
 
 The optional argument `--log-level` can be used to print more or less
 information. Valid levels are: `critical`, `error`, `warning`, and `info`
+
+The output can be filtered accordingly. For example, to print the credit
+awards
+```
+docker run -it --rm --name grad-program grad-program --current-semester 'Fall 2020' --log-level warning | egrep -v '(ERROR|CRITICAL)' | grep -B2 WARNING
+```
