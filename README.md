@@ -14,7 +14,7 @@ where `[OPTIONS]` are:
 | ------------------------ | -------------------------- | ------------ |
 | `--current-semester`     | `Fall 2020`                | Name of current semester to parse pending grades (no default)  |
 | `--transcript-file`      | `Transcripts.PDF`          | PDF file containing MySlice advising transcripts (default is `Transcripts.PDF`)  |
-| `--active-student-file`  | `Active Student Data.csv`  | CSV file contaiing active student data from MySlice query  (default is `Active Student Data.csv`) |
+| `--active-student-file`  | `Active Student Data.xls`  | Excel file contaiing active student data from MySlice query  (default is `Active Student Data.xls`) |
 | `--output-file`          | `report.csv`               | CSV file contaiing report on students for upload to Teams (default is `report.csv`)  |
 | `--log-level`            | `warning`                  | Logging level as descrived below  |
 

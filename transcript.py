@@ -6,6 +6,7 @@ import csv
 from pdfreader import SimplePDFViewer
 import logging
 import argparse
+import pandas as pd
 
 def addLoggingLevel(levelName, levelNum, methodName=None):
     """
@@ -305,8 +306,8 @@ if __name__ == '__main__':
     parser.add_argument('--current-semester', help='current semester in transcript')
     parser.add_argument('--log-level', help='logging level', default='error')
     parser.add_argument('--transcript-file', help='PDF file containing MySlice advising transcripts', default='Transcripts.PDF')
-    parser.add_argument('--active-student-file', help='CSV file contaiing active student data from MySlice query', default='Active Student Data.csv')
-    parser.add_argument('--output-file', help='CSV file contaiing report on students for upload to Teams', default='report.csv')
+    parser.add_argument('--active-student-file', help='Excel file contaiing active student data from MySlice query', default='Active Student Data.xls')
+    parser.add_argument('--output-file', help='Excel file contaiing report on students for upload to Teams', default='Graduate Student Report.xlsx')
     args = parser.parse_args()
 
     if args.current_semester is None:
@@ -328,8 +329,12 @@ if __name__ == '__main__':
     logging.addLevelName(logging.ERROR, "ERROR    ")
     logging.addLevelName(logging.WARNING, "WARNING  ")
     logging.addLevelName(logging.INFO, "INFO     ")
+
+    active_student_csv = args.active_student_file.split('.')[0] + '.csv'
+    data_xls = pd.read_excel(args.active_student_file, 0, index_col=None)
+    data_xls.to_csv(active_student_csv, encoding='ascii', index=False)
     
-    reader = csv.DictReader(open(args.active_student_file))
+    reader = csv.DictReader(open(active_student_csv))
     suids = {}
     citizenship = {}
 
