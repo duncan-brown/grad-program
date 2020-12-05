@@ -347,7 +347,7 @@ if __name__ == '__main__':
     for row in reader:
         key = int(row['Emplid'])
         suids[key] = row['Name Last First Mid']
-        if row['Citizenship Sh Desc'] is 'Citizen':
+        if row['Citizenship Sh Desc'] == 'Citizen':
             citizenship[key] = 0
         else:
             citizenship[key] = 1
