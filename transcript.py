@@ -372,7 +372,7 @@ if __name__ == '__main__':
 
     workbook = xlsxwriter.Workbook(args.output_file)
     worksheet = workbook.add_worksheet()
-    worksheet.add_table('A1:L{}'.format(len(data)), 
+    worksheet.add_table('A1:N{}'.format(len(data)), 
         {'data' : data,
          'columns' : [{'header' : 'Name'}, 
                       {'header' : 'SUID'},
