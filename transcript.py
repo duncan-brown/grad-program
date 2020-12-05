@@ -249,7 +249,7 @@ def parse_student(markdown, current_semester, suids):
             logging.info('Needs {} more credits for ABD status.'.format(48 - credits_earned))
         else:
             logging.critical('Needs to apply for ABD status.')
-            result['ABD'] = 'Overdue'
+            result['ABD'] = 'Eligable'
         logging.info('Currently taking {}'.format(current_courses))
 
     if not abd and pass_wqe and pass_research_oral:
