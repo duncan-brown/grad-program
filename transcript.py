@@ -169,13 +169,13 @@ def parse_student(markdown, current_semester, suids):
         logging.debug('Not yet completed required core class requirements')
         completed_core = False
 
-    required_lab = {('PHY514',3), ('PHY614',3), ('PHY651',3)}
-    if len(courses_taken.intersection(required_lab)) > 0:
+    required_skills_courses = {('PHY514',3), ('PHY614',3), ('PHY651',3)}
+    if len(courses_taken.intersection(required_skills_courses)) > 0:
         logging.info('Completed required skills course requirements')
-        completed_lab = True
+        completed_skills = True
     else:
         logging.debug('Not yet completed required skills course requirements')
-        completed_lab = False
+        completed_skills = False
 
     elective_courses = { ('PHY607', 3),
                          ('PHY635', 3),
@@ -217,9 +217,8 @@ def parse_student(markdown, current_semester, suids):
             logging.info("Registered for GRD998")
         else:
             logging.critical('ABD but registered for {}'.format(current_courses))
-        return
 
-    if pass_wqe and pass_research_oral and completed_core and completed_lab:
+    if not abd and pass_wqe and pass_research_oral and completed_core and completed_skills:
         if credits_earned < 48:
             logging.info('Needs {} more credits for ABD status.'.format(48 - credits_earned))
         else:
@@ -227,10 +226,10 @@ def parse_student(markdown, current_semester, suids):
         logging.info('Currently taking {}'.format(current_courses))
         return
 
-    if pass_wqe and pass_research_oral:
+    if not abd and pass_wqe and pass_research_oral:
         if completed_core is False:
             logging.critical('Incomplete core class requirements')
-        if completed_lab is False:
+        if completed_skills is False:
             logging.critical('Incomplete skills course requirements')
 
     reserch_oral_overdue = False
@@ -271,6 +270,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--current-semester', help='current semester in transcript')
     parser.add_argument('--log-level', help='logging level', default='error')
+    parser.add_argument('--transcript-file', help='PDF file containing MySlice advising transcripts', default='Transcripts.PDF')
+    parser.add_argument('--active-student-file', help='CSV file contaiing active student data from MySlice query', default='Active Student Data.csv')
     args = parser.parse_args()
 
     if args.current_semester is None:
@@ -293,13 +294,13 @@ if __name__ == '__main__':
     logging.addLevelName(logging.WARNING, "WARNING  ")
     logging.addLevelName(logging.INFO, "INFO     ")
     
-    reader = csv.DictReader(open('Active Student Data.csv'))
+    reader = csv.DictReader(open(args.active_student_file))
     suids = {}
     for row in reader:
         key = int(row['Emplid'])
         suids[key] = row['Name Last First Mid']
     
-    fd = open('Transcripts.PDF','rb')
+    fd = open(args.transcript_file,'rb')
     viewer = SimplePDFViewer(fd)
     
     all_pages = [p for p in viewer.doc.pages()]
