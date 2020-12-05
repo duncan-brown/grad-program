@@ -331,10 +331,12 @@ if __name__ == '__main__':
     
     reader = csv.DictReader(open(args.active_student_file))
     suids = {}
+    citizenship = {}
 
     for row in reader:
         key = int(row['Emplid'])
         suids[key] = row['Name Last First Mid']
+        citizenship[key] = row['Citizenship Sh Desc']
     
     fd = open(args.transcript_file,'rb')
     viewer = SimplePDFViewer(fd)
@@ -344,8 +346,8 @@ if __name__ == '__main__':
     with open(args.output_file, 'w') as csvfile:
 
         fieldnames = ['Name', 'SUID',
-        'Program Status', 'Concerns', 'Registration',
-        'Immigration',
+        'Program Status', 'Registration',
+        'Citizenship',
         'Core', 'Qualifier', 'Skills', 
         'Research Oral', 'Elective', 'ABD',
         'Comments']
@@ -359,6 +361,7 @@ if __name__ == '__main__':
             r = parse_student(viewer.canvas.text_content, args.current_semester, suids)
             if r is None:
                 continue
+            r['Citizenship'] = citizenship[r['SUID']]
             writer.writerow(r)
 
     sys.exit(0)
