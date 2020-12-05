@@ -15,6 +15,7 @@ where `[OPTIONS]` are:
 | `--current-semester`     | `Fall 2020`                | Name of current semester to parse pending grades (no default)  |
 | `--transcript-file`      | `Transcripts.PDF`          | PDF file containing MySlice advising transcripts (default is `Transcripts.PDF`)  |
 | `--active-student-file`  | `Active Student Data.csv`  | CSV file contaiing active student data from MySlice query  (default is `Active Student Data.csv`) |
+| `--output-file`          | `report.csv`               | CSV file contaiing report on students for upload to Teams (default is `report.csv`)  |
 | `--log-level`            | `warning`                  | Logging level as descrived below  |
 
 The optional argument `--log-level` can be used to print more or less information about each student. Valid options to `--log-level` are:
@@ -31,12 +32,12 @@ The optional argument `--log-level` can be used to print more or less informatio
 
 Print all information about students:
 ```
-docker run -it --rm --name grad-program grad-program --current-semester 'Fall 2020' --log-level info
+docker run -it -v `pwd`:/usr/src/app --rm --name grad-program grad-program --current-semester 'Fall 2020' --log-level info
 ```
 
 Print the number of credits that the student needs next semester
 ```
-docker run -it --rm --name grad-program grad-program --current-semester 'Fall 2020' --log-level warning | egrep -v '(ERROR|CRITICAL)'
+docker run -it -v `pwd`:/usr/src/app --rm --name grad-program grad-program --current-semester 'Fall 2020' --log-level warning | egrep -v '(ERROR|CRITICAL)'
 ```
 
 ## Building Docker Image

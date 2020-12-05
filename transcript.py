@@ -361,7 +361,4 @@ if __name__ == '__main__':
                 continue
             writer.writerow(r)
 
-    with open(args.output_file, 'r') as f:
-        print(f.read())
-
     sys.exit(0)
