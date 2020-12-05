@@ -15,7 +15,7 @@ where `[OPTIONS]` are:
 | `--current-semester`     | `Fall 2020`                | Name of current semester to parse pending grades (no default)  |
 | `--transcript-file`      | `Transcripts.PDF`          | PDF file containing MySlice advising transcripts (default is `Transcripts.PDF`)  |
 | `--active-student-file`  | `Active Student Data.xls`  | Excel file contaiing active student data from MySlice query  (default is `Active Student Data.xls`) |
-| `--output-file`          | `report.csv`               | CSV file contaiing report on students for upload to Teams (default is `report.csv`)  |
+| `--output-file`          | `Graduate Student Report.xlsx`               | Excel file contaiing report on students for upload to Teams (default is `Graduate Student Report.xlsx`)  |
 | `--log-level`            | `warning`                  | Logging level as descrived below  |
 
 The optional argument `--log-level` can be used to print more or less information about each student. Valid options to `--log-level` are:

@@ -7,6 +7,7 @@ from pdfreader import SimplePDFViewer
 import logging
 import argparse
 import pandas as pd
+import xlsxwriter
 
 def addLoggingLevel(levelName, levelNum, methodName=None):
     """
@@ -346,27 +347,39 @@ if __name__ == '__main__':
     fd = open(args.transcript_file,'rb')
     viewer = SimplePDFViewer(fd)
     
+    data = []
+
+
     all_pages = [p for p in viewer.doc.pages()]
+    for p in range(len(all_pages)):
+        viewer.navigate(p+1)
+        viewer.render()
+        r = parse_student(viewer.canvas.text_content, args.current_semester, suids)
+        if r is None:
+            continue
+        data.append([ r['Name'], str(r['SUID']),
+        r['Program Status'], r['Registration'],
+        citizenship[r['SUID']],
+        r['Core'], r['Qualifier'], r['Skills'], 
+        r['Research Oral'], r['Elective'], r['ABD'],
+        r['Comments']])
+
+    workbook = xlsxwriter.Workbook(args.output_file)
+    worksheet = workbook.add_worksheet()
+    worksheet.add_table('A1:L{}'.format(len(data)), 
+        {'data' : data,
+         'columns' : [{'header' : 'Name'}, 
+                      {'header' : 'SUID'},
+                      {'header' : 'Program Status'},
+                      {'header' : 'Registration'},
+                      {'header' : 'Citizenship'},
+                      {'header' : 'Core'},
+                      {'header' : 'Qualifier'},
+                      {'header' : 'Skills'}, 
+                      {'header' : 'Research Oral'},
+                      {'header' : 'Elective'},
+                      {'header' : 'ABD'},
+                      {'header' : 'Comments'}]})
+    workbook.close()
     
-    with open(args.output_file, 'w') as csvfile:
-
-        fieldnames = ['Name', 'SUID',
-        'Program Status', 'Registration',
-        'Citizenship',
-        'Core', 'Qualifier', 'Skills', 
-        'Research Oral', 'Elective', 'ABD',
-        'Comments']
-
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-        writer.writeheader()
-    
-        for p in range(len(all_pages)):
-            viewer.navigate(p+1)
-            viewer.render()
-            r = parse_student(viewer.canvas.text_content, args.current_semester, suids)
-            if r is None:
-                continue
-            r['Citizenship'] = citizenship[r['SUID']]
-            writer.writerow(r)
-
     sys.exit(0)
