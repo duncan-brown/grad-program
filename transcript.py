@@ -123,12 +123,10 @@ def parse_student(markdown, current_semester, suids):
 
     if len(re.findall('\(Qualifying Exam 1\)', markdown)) > 0:
         logging.debug('Passed written qualifying exam')
-        pass_wqe = True
-        result['Qualifier'] = 1
+        result['Qualifier'] = pass_wqe = True
     else:
         logging.debug('Needs to take written qualifying exam')
-        pass_wqe = False
-        result['Qualifier'] = 0
+        result['Qualifier'] = pass_wqe = False
 
     if len(re.findall('\(Qualifying Exam 2\)', markdown)) > 0:
         logging.debug('Passed research oral exam')
@@ -178,22 +176,18 @@ def parse_student(markdown, current_semester, suids):
     required_core = {('PHY621',3), ('PHY641',3), ('PHY661',3), ('PHY662',3), ('PHY731',3)}
     if courses_taken.intersection(required_core) == required_core:
         logging.info('Completed required core class requirements')
-        completed_core = True
-        result['Core'] = 1
+        result['Core'] = completed_core = True
     else:
         logging.debug('Not yet completed required core class requirements')
-        completed_core = False
-        result['Core'] = 0
+        result['Core'] = completed_core = False
 
     required_skills_courses = {('PHY514',3), ('PHY614',3), ('PHY651',3)}
     if len(courses_taken.intersection(required_skills_courses)) > 0:
         logging.info('Completed required skills course requirements')
-        completed_skills = True
-        result['Skills'] = 1
+        result['Skills'] = completed_skills = True
     else:
         logging.debug('Not yet completed required skills course requirements')
-        completed_skills = False
-        result['Skills'] = 0
+        result['Skills'] = completed_skills = False
 
     elective_courses = { ('PHY607', 3),
                          ('PHY635', 3),
@@ -219,11 +213,9 @@ def parse_student(markdown, current_semester, suids):
 
     if elective_credits > 8:
         logging.info('Completed required elective courses')
-        has_electives = True
-        result['Elective'] = 1
+        result['Elective'] = has_electives = True
     else:
-        has_electives = False
-        result['Elective'] = 0
+        result['Elective'] = has_electives = False
         logging.debug('Not yet completed required elective courses')
 
     missing_grades = courses_in_progress.difference(current_courses)
