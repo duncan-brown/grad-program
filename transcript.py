@@ -102,8 +102,8 @@ def parse_student(markdown, current_semester, suids):
     if len(re.findall('Undergrad', markdown)) > 0:
         return None
 
-    result = {'Registration' : 'OK',
-    'Program Status' : 'Active',
+    result = {'Registration' : 0,
+    'Program Status' : 1,
     'Comments' : '' }
 
     student_string = markdown.split('(Graduate Record)')[0]
@@ -115,29 +115,29 @@ def parse_student(markdown, current_semester, suids):
     if len(re.findall('\(All But Dissertation\)', markdown)) > 0:
         logging.debug('ABD Status')
         abd = True
-        result['ABD'] = 'Yes'
+        result['ABD'] = 1
     else:
         logging.debug('Not ABD Status')
         abd = False
-        result['ABD'] = 'No'
+        result['ABD'] = 0
 
     if len(re.findall('\(Qualifying Exam 1\)', markdown)) > 0:
         logging.debug('Passed written qualifying exam')
         pass_wqe = True
-        result['Qualifier'] = 'Yes'
+        result['Qualifier'] = 1
     else:
         logging.debug('Needs to take written qualifying exam')
         pass_wqe = False
-        result['Qualifier'] = 'No'
+        result['Qualifier'] = 0
 
     if len(re.findall('\(Qualifying Exam 2\)', markdown)) > 0:
         logging.debug('Passed research oral exam')
         pass_research_oral = True
-        result['Research Oral'] = 'Yes'
+        result['Research Oral'] = 1
     else:
         logging.debug('Needs to take research oral exam')
         pass_research_oral = False
-        result['Research Oral'] = 'No'
+        result['Research Oral'] = 0
 
     gpa_strings = re.findall(r'\(.*?\)',markdown.split(
         '(** Graduate Record Credit Summary **)', 1)[1].split(
@@ -179,21 +179,21 @@ def parse_student(markdown, current_semester, suids):
     if courses_taken.intersection(required_core) == required_core:
         logging.info('Completed required core class requirements')
         completed_core = True
-        result['Core'] = 'Yes'
+        result['Core'] = 1
     else:
         logging.debug('Not yet completed required core class requirements')
         completed_core = False
-        result['Core'] = 'No'
+        result['Core'] = 0
 
     required_skills_courses = {('PHY514',3), ('PHY614',3), ('PHY651',3)}
     if len(courses_taken.intersection(required_skills_courses)) > 0:
         logging.info('Completed required skills course requirements')
         completed_skills = True
-        result['Skills'] = 'Yes'
+        result['Skills'] = 1
     else:
         logging.debug('Not yet completed required skills course requirements')
         completed_skills = False
-        result['Skills'] = 'No'
+        result['Skills'] = 0
 
     elective_courses = { ('PHY607', 3),
                          ('PHY635', 3),
@@ -220,17 +220,17 @@ def parse_student(markdown, current_semester, suids):
     if elective_credits > 8:
         logging.info('Completed required elective courses')
         has_electives = True
-        result['Elective'] = 'Yes'
+        result['Elective'] = 1
     else:
         has_electives = False
-        result['Elective'] = 'No'
+        result['Elective'] = 0
         logging.debug('Not yet completed required elective courses')
 
     missing_grades = courses_in_progress.difference(current_courses)
     if len(missing_grades):
         msg = 'Missing grades for {}. '.format(missing_grades)
         logging.critical(msg)
-        result['Registration'] = 'Problem'
+        result['Registration'] = 3
         result['Comments'] += msg
 
     if abd:
@@ -241,7 +241,7 @@ def parse_student(markdown, current_semester, suids):
         else:
             msg = 'ABD but registered for {}. '.format(current_courses)
             logging.critical(msg)
-            result['Registration'] = 'Problem'
+            result['Registration'] = 3
             result['Comments'] += msg
 
     if not abd and pass_wqe and pass_research_oral and completed_core and completed_skills:
@@ -249,7 +249,7 @@ def parse_student(markdown, current_semester, suids):
             logging.info('Needs {} more credits for ABD status.'.format(48 - credits_earned))
         else:
             logging.critical('Needs to apply for ABD status.')
-            result['ABD'] = 'Eligable'
+            result['ABD'] = 2
         logging.info('Currently taking {}'.format(current_courses))
 
     if not abd and pass_wqe and pass_research_oral:
@@ -262,7 +262,7 @@ def parse_student(markdown, current_semester, suids):
     if (pass_research_oral is False) and (credits_earned > 36):
         logging.critical('Overdue for research oral examination')
         reserch_oral_overdue = True
-        result['Research Oral'] = 'Overdue'
+        result['Research Oral'] = 3
     elif pass_wqe and pass_research_oral is False:
         logging.error('Needs to take research oral')
 
@@ -278,20 +278,20 @@ def parse_student(markdown, current_semester, suids):
     if credit_remaining > -1 and (pending_credit > credit_remaining):
         msg = 'Over registered for classes: pending {}, remaining {}. '.format(pending_credit,credit_remaining)
         logging.critical(msg)
-        result['Registration'] = 'Over'
+        result['Registration'] = 1
         result['Comments'] += msg
 
     if pending_not_posted_credit < min(9, credit_remaining):
         msg = 'Insufficent registration for classes: pending {}, remaining {}. '.format(pending_not_posted_credit,credit_remaining)
         logging.critical(msg)
-        result['Registration'] = 'Under'
+        result['Registration'] = 2
         result['Comments'] += msg
 
     award = min(9, 48-(credits_earned+pending_credit))
     if award > 0:
         if reserch_oral_overdue is False and (pass_wqe is False or pass_research_oral is False) and award < 9:
             logging.critical('Check for registration error')
-            result['Registration'] = 'Problem'
+            result['Registration'] = 3
             result['Comments'] += 'Unresolved registration error. '
         logging.warning('Needs {} credit award next semester'.format(award))
         result['cred_award'] = award
@@ -347,7 +347,10 @@ if __name__ == '__main__':
     for row in reader:
         key = int(row['Emplid'])
         suids[key] = row['Name Last First Mid']
-        citizenship[key] = row['Citizenship Sh Desc']
+        if row['Citizenship Sh Desc'] is 'Citizen':
+            citizenship[key] = 0
+        else:
+            citizenship[key] = 1
     
     fd = open(args.transcript_file,'rb')
     viewer = SimplePDFViewer(fd)
