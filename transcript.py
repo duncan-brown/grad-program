@@ -249,7 +249,6 @@ def parse_student(markdown, current_semester, suids):
             logging.critical('Needs to apply for ABD status.')
             result['ABD'] = 'Overdue'
         logging.info('Currently taking {}'.format(current_courses))
-        return
 
     if not abd and pass_wqe and pass_research_oral:
         if completed_core is False:
