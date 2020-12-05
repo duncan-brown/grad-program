@@ -9,5 +9,8 @@ docker build -t grad-program .
 
 To run the parsing script:
 ```
-docker run -it --rm --name grad-program grad-program
+docker run -it --rm --name grad-program grad-program --current-semester 'Fall 2020'
 ```
+
+The optional argument `--log-level` can be used to print more or less
+information. Valid levels are: `critical`, `error`, `warning`, and `info`

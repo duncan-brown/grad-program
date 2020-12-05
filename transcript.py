@@ -5,7 +5,7 @@ import re
 import csv
 from pdfreader import SimplePDFViewer
 import logging
-
+import argparse
 
 def addLoggingLevel(levelName, levelNum, methodName=None):
     """
@@ -215,7 +215,7 @@ def parse_student(markdown, current_semester, suids):
         if current_courses.intersection(grd_998) == grd_998:
             logging.info("Registered for GRD998")
         else:
-            logging.error('ABD but registered for {}'.format(current_courses))
+            logging.critical('ABD but registered for {}'.format(current_courses))
         return
 
     if pass_wqe and pass_research_oral and completed_core and completed_lab:
@@ -263,11 +263,28 @@ def parse_student(markdown, current_semester, suids):
     logging.info('Needs {} more credits for ABD status.'.format(48 - (credits_earned+pending_credit)))
     return
 
-if __name__ == "__main__":
-    addLoggingLevel('STUDENT', 100)
+if __name__ == '__main__':
+    addLoggingLevel('STUDENT', logging.CRITICAL + 1)
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--current-semester', help='current semester in transcript')
+    parser.add_argument('--log-level', help='logging level', default='error')
+    args = parser.parse_args()
+
+    if args.current_semester is None:
+        raise ValueError('--current-semester must be specified')
+    semesters = ['Fall', 'Spring', 'Summer']
+    s, y = args.current_semester.split(' ')
+    if s not in semesters:
+        raise ValueError('--current-semester must be one of {} followed by the year'.format(semesters))
+    if not re.match(r'[0-9]{4}',y):
+        raise ValueError('Invalid year for --current-semester')
+
+    numeric_level = getattr(logging, args.log_level.upper(), None)
+    if not isinstance(numeric_level, int):
+        raise ValueError('Invalid log level: %s' % loglevel)
     
-    current_semester = 'Fall 2020'
-    logging.basicConfig(level=logging.WARNING,format='%(message)s')
+    logging.basicConfig(level=numeric_level,format='%(message)s')
     
     reader = csv.DictReader(open('Active Student Data.csv'))
     suids = {}
@@ -283,6 +300,6 @@ if __name__ == "__main__":
     for p in range(len(all_pages)):
         viewer.navigate(p+1)
         viewer.render()
-        parse_student(viewer.canvas.text_content, current_semester, suids)
+        parse_student(viewer.canvas.text_content, args.current_semester, suids)
     
     sys.exit(0)
