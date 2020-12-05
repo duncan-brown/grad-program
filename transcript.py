@@ -294,9 +294,14 @@ def parse_student(markdown, current_semester, suids):
             result['Registration'] = 'Problem'
             result['Comments'] += 'Unresolved registration error. '
         logging.warning('Needs {} credit award next semester'.format(award))
+        result['cred_award'] = award
+    else:
+        result['cred_award'] = 0
 
     logging.info('Currently taking {}'.format(current_courses))
-    logging.info('Needs {} more credits for ABD status.'.format(48 - (credits_earned+pending_credit)))
+    cred_remaining = max(0,48 - (credits_earned+pending_credit))
+    logging.info('Needs {} more credits for ABD status.'.format(cred_remaining))
+    result['cred_remaining'] = cred_remaining
 
     return result
 
@@ -359,6 +364,7 @@ if __name__ == '__main__':
             continue
         data.append([ r['Name'], str(r['SUID']),
         r['Program Status'], r['Registration'],
+        r['cred_remaining'], r['cred_award'],
         citizenship[r['SUID']],
         r['Core'], r['Qualifier'], r['Skills'], 
         r['Research Oral'], r['Elective'], r['ABD'],
@@ -372,6 +378,8 @@ if __name__ == '__main__':
                       {'header' : 'SUID'},
                       {'header' : 'Program Status'},
                       {'header' : 'Registration'},
+                      {'header' : 'Credits Remaining'},
+                      {'header' : 'Next Credit Award'},
                       {'header' : 'Citizenship'},
                       {'header' : 'Core'},
                       {'header' : 'Qualifier'},
