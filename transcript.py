@@ -102,7 +102,7 @@ def parse_student(markdown, current_semester, suids):
 
     student_string = markdown.split('(Graduate Record)')[0]
     suid = int(re.findall(r'\([0-9]{5}-[0-9]{4}\)', markdown)[0][1:-1].replace('-',''))
-    logging.student('====== ({}) {:<35} ======================'.format(suid, suids[suid]))
+    logging.student('\n======== {} ({}) '.format(suids[suid], suid))
 
     if len(re.findall('\(All But Dissertation\)', markdown)) > 0:
         logging.debug('ABD Status')
@@ -157,6 +157,7 @@ def parse_student(markdown, current_semester, suids):
     c, t = parse_courses(current_semester_string, c, t, 'GRD', 'NR')
     c, t = parse_courses(current_semester_string, c, t, 'MAT', 'AU')
     c, t = parse_courses(current_semester_string, c, t, 'ECS', 'AU')
+    c, t = parse_courses(current_semester_string, c, t, 'BEN', 'AU')
     current_courses = c.union(t)
     logging.debug('Current {} semester courses {}'.format(current_semester,courses_taken))
 
@@ -232,10 +233,11 @@ def parse_student(markdown, current_semester, suids):
         if completed_lab is False:
             logging.critical('Incomplete skills course requirements')
 
+    reserch_oral_overdue = False
     if (pass_research_oral is False) and (credits_earned > 36):
         logging.critical('Overdue for research oral examination')
-
-    if pass_wqe and completed_core and completed_lab:
+        reserch_oral_overdue = True
+    elif pass_wqe and pass_research_oral is False:
         logging.error('Needs to take research oral')
 
     credit_remaining = 48 - credits_earned
@@ -247,7 +249,7 @@ def parse_student(markdown, current_semester, suids):
         if course != 'PHY999':
             pending_credit += credit
 
-    if pending_credit > credit_remaining:
+    if credit_remaining > -1 and (pending_credit > credit_remaining):
         logging.critical('Over registered for classes: pending {}, remaining {}'.format(pending_credit,credit_remaining))
 
     if pending_not_posted_credit < min(9, credit_remaining):
@@ -255,7 +257,7 @@ def parse_student(markdown, current_semester, suids):
 
     award = min(9, 48-(credits_earned+pending_credit))
     if award > 0:
-        if (pass_wqe is False or pass_research_oral is False) and award < 9:
+        if reserch_oral_overdue is False and (pass_wqe is False or pass_research_oral is False) and award < 9:
             logging.critical('Check for registration error')
         logging.warning('Needs {} credit award next semester'.format(award))
 
@@ -284,7 +286,12 @@ if __name__ == '__main__':
     if not isinstance(numeric_level, int):
         raise ValueError('Invalid log level: %s' % loglevel)
     
-    logging.basicConfig(level=numeric_level,format='%(message)s')
+    logging.basicConfig(level=numeric_level,format='%(levelname)s%(message)s')
+    logging.addLevelName(logging.STUDENT, "")
+    logging.addLevelName(logging.CRITICAL, "CRITICAL ")
+    logging.addLevelName(logging.ERROR, "ERROR    ")
+    logging.addLevelName(logging.WARNING, "WARNING  ")
+    logging.addLevelName(logging.INFO, "INFO     ")
     
     reader = csv.DictReader(open('Active Student Data.csv'))
     suids = {}
