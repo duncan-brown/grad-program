@@ -1,3 +1,13 @@
 # grad-program
 
-`transcript.py` is a script for parsing the PDF advising transcripts produced by MySlice. The transcript data is parsed from the file `Transcripts.PDF` and a list of `SUID,Names` are loaded from the file `suids.csv`
+`transcript.py` is a script for parsing the PDF advising transcripts produced by MySlice. The transcript data is parsed from the file `Transcripts.PDF` and a list of names and SUIDs are read from the file `Active Student Data.csv`
+
+To build the Docker image:
+```
+docker build -t grad-program .
+```
+
+To run the parsing script:
+```
+docker run -it --rm --name grad-program grad-program
+```
