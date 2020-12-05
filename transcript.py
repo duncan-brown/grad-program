@@ -2,11 +2,12 @@
 
 import sys
 import re
+import csv
 from pdfreader import SimplePDFViewer
 
 def parse_courses(course_strings, courses_taken, courses_in_progress, 
                   subject='PHY', 
-                  valid_grades = ['A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'F', 'NR']):
+                  valid_grades = ['A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'F', 'NR', 'NA', 'AU']):
 
     six_ninety_done = 0
     six_ninety_in_progress = 0
@@ -37,17 +38,18 @@ def parse_courses(course_strings, courses_taken, courses_in_progress,
 
     return courses_taken, courses_in_progress
 
-def parse_student(markdown, current_semester):
+def parse_student(markdown, current_semester, suids):
 
     if len(re.findall('Undergrad', markdown)) > 0:
         return
 
+    print('==========================================')
+
     student_string = markdown.split('(Graduate Record)')[0]
-    suid = re.findall(r'\([0-9]{5}-[0-9]{4}\)', markdown)[0][1:-1]
-    print('Student {}'.format(suid))
+    suid = int(re.findall(r'\([0-9]{5}-[0-9]{4}\)', markdown)[0][1:-1].replace('-',''))
+    print('{} ({})'.format(suids[suid], suid))
 
     if len(re.findall('\(All But Dissertation\)', markdown)) > 0:
-        print('Has ABD status')
         abd = True
     else:
         abd = False
@@ -80,29 +82,29 @@ def parse_student(markdown, current_semester):
 
     course_strings = markdown.split('-Physics)')
     courses_taken, courses_in_progress = parse_courses(course_strings, courses_taken, courses_in_progress)
+    courses_taken, courses_in_progress = parse_courses(course_strings, courses_taken, courses_in_progress, 'MAT')
+    courses_taken, courses_in_progress = parse_courses(course_strings, courses_taken, courses_in_progress, 'ECS')
 
     current_semester_string = markdown.split(current_semester + '-Physics)')[-1:]
     c = set()
     t = set()
     c, t = parse_courses(current_semester_string, c, t, 'PHY', 'NR')
     c, t = parse_courses(current_semester_string, c, t, 'GRD', 'NR')
+    c, t = parse_courses(current_semester_string, c, t, 'MAT', 'AU')
+    c, t = parse_courses(current_semester_string, c, t, 'ECS', 'AU')
     current_courses = c.union(t)
 
     required_core = {('PHY621',3), ('PHY641',3), ('PHY661',3), ('PHY662',3), ('PHY731',3)}
 
     if courses_taken.intersection(required_core) == required_core:
-        print('Has completed required core courses')
         completed_core = True
     else:
-        print('Needs to complete required core courses')
         completed_core = False
 
     required_lab = {('PHY514',3), ('PHY614',3), ('PHY651',3)}
     if len(courses_taken.intersection(required_lab)) > 0:
-        print('Has completed required skills courses')
         completed_lab = True
     else:
-        print('Needs to complete required skills courses')
         completed_lab = False
 
     elective_courses = { ('PHY607', 3),
@@ -128,19 +130,44 @@ def parse_student(markdown, current_semester):
             elective_credits += credits
 
     if elective_credits > 8:
-        print('Has completed elective courses')
         has_electives = True
     else:
-        print('Needs to complete elective courses')
         has_electives = False
 
     missing_grades = courses_in_progress.difference(current_courses)
-
-    print('Currently taking {}'.format(current_courses))
     if len(missing_grades):
-        print('Missing grades for {}'.format(missing_grades))
-    print('Total {} credits with {} transfer credits.'.format(credits_earned, credits_transfered))
-    print('Needs {} more credits for ABD status.'.format(48 - credits_earned))
+        print('[ERROR] Missing grades for {}'.format(missing_grades))
+
+    if abd:
+        print("[OK] Has ABD status")
+        grd_998 = {('GRD998',0)}
+        if current_courses.intersection(grd_998) == grd_998:
+            print("[OK] Registered for GRD998")
+        else:
+            print('[ERROR] ABD but registered for {}'.format(current_courses))
+        return
+
+    if pass_wqe and pass_research_oral and completed_core and completed_lab:
+        if credits_earned < 48:
+            print('[OK] Needs {} more credits for ABD status.'.format(48 - credits_earned))
+        else:
+            print('[ERROR] Needs to apply for ABD status.')
+        print('[OK] Currently taking {}'.format(current_courses))
+        return
+
+    if pass_wqe and completed_core and completed_lab:
+        print('[ERROR] Needs to take research oral')
+
+    print('[OK] Currently taking {}'.format(current_courses))
+    print('[OK] Needs {} more credits for ABD status.'.format(48 - credits_earned))
+    return
+
+
+reader = csv.reader(open('suids.csv'))
+suids = {}
+for row in reader:
+    key = int(row[0])
+    suids[key] = row[1]
 
 fd = open('Transcripts.PDF','rb')
 viewer = SimplePDFViewer(fd)
@@ -150,6 +177,6 @@ all_pages = [p for p in viewer.doc.pages()]
 for p in range(len(all_pages)):
     viewer.navigate(p+1)
     viewer.render()
-    parse_student(viewer.canvas.text_content,'Fall 2020')
+    parse_student(viewer.canvas.text_content, 'Fall 2020', suids)
 
 sys.exit(0)
