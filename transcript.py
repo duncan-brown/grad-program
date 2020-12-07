@@ -106,7 +106,7 @@ def parse_student(markdown, current_semester, suids):
 
     result = {'Registration' : 0,
     'Program Status' : 1,
-    'Comments' : '(Las Run Date: {}: '.format(datetime.today().strftime('%Y-%m-%d'))
+    'Comments' : '(Transcript Parsed On: {}: '.format(datetime.today().strftime('%Y-%m-%d'))
     }
 
     student_string = markdown.split('(Graduate Record)')[0]
