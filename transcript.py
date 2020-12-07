@@ -8,6 +8,8 @@ import logging
 import argparse
 import pandas as pd
 import xlsxwriter
+from datetime import datetime
+
 
 def addLoggingLevel(levelName, levelNum, methodName=None):
     """
@@ -104,7 +106,8 @@ def parse_student(markdown, current_semester, suids):
 
     result = {'Registration' : 0,
     'Program Status' : 1,
-    'Comments' : '' }
+    'Comments' : '(Las Run Date: {}: '.format(datetime.today().strftime('%Y-%m-%d'))
+    }
 
     student_string = markdown.split('(Graduate Record)')[0]
     suid = int(re.findall(r'\([0-9]{5}-[0-9]{4}\)', markdown)[0][1:-1].replace('-',''))
@@ -257,6 +260,10 @@ def parse_student(markdown, current_semester, suids):
         result['Research Oral'] = 3
     elif pass_wqe and pass_research_oral is False:
         logging.error('Needs to take research oral')
+        nneds_research_oral = True
+        result['Research Oral'] = 2
+    else:
+        needs_research_oral = False
 
     credit_remaining = 48 - credits_earned
     pending_credit = 0
@@ -295,6 +302,7 @@ def parse_student(markdown, current_semester, suids):
     logging.info('Needs {} more credits for ABD status.'.format(cred_remaining))
     result['cred_remaining'] = cred_remaining
 
+    result['Comments'] = result['Comments'] + ')'
     return result
 
 if __name__ == '__main__':
