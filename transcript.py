@@ -216,7 +216,10 @@ def parse_student(markdown, current_semester, suids):
                          ('PHY885', 3),
                          ('PHY886', 3),
                          ('PHY890', 3),
-                         ('PHY990', 3) }
+                         ('PHY990', 3),
+                         ('BIO600', 3),
+                         ('PHY600', 3),
+                         ('PHY500', 3)}
 
     elective_credits = 3 * len(courses_taken.intersection(elective_courses))
 
