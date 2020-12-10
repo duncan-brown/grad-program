@@ -343,6 +343,7 @@ if __name__ == '__main__':
     reader = csv.DictReader(open(active_student_csv))
     suids = {}
     citizenship = {}
+    email_addr = {}
 
     for row in reader:
         key = int(row['Emplid'])
@@ -351,6 +352,7 @@ if __name__ == '__main__':
             citizenship[key] = 0
         else:
             citizenship[key] = 1
+        email_addr[key] = row['Email Published Addr']
     
     fd = open(args.transcript_file,'rb')
     viewer = SimplePDFViewer(fd)
@@ -371,11 +373,12 @@ if __name__ == '__main__':
         citizenship[r['SUID']],
         r['Core'], r['Qualifier'], r['Skills'], 
         r['Research Oral'], r['Elective'], r['ABD'],
-        r['Comments']])
+        r['Comments'],
+        email_addr[r['SUID']]])
 
     workbook = xlsxwriter.Workbook(args.output_file)
     worksheet = workbook.add_worksheet()
-    worksheet.add_table('A1:N{}'.format(len(data)), 
+    worksheet.add_table('A1:O{}'.format(len(data)), 
         {'data' : data,
          'columns' : [{'header' : 'Name'}, 
                       {'header' : 'SUID'},
@@ -390,7 +393,8 @@ if __name__ == '__main__':
                       {'header' : 'Research Oral'},
                       {'header' : 'Elective'},
                       {'header' : 'ABD'},
-                      {'header' : 'Comments'}]})
+                      {'header' : 'Comments'},
+                      {'header' : 'Email'}]})
     workbook.close()
     
     sys.exit(0)
